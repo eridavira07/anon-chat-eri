@@ -18,7 +18,7 @@ import {
 
 // === Konfigurasi Firebase ===
 const firebaseConfig = {
-  apiKey: "AIzaSyCkUOL3hfMg8I8ZUF-GX4QThe_0Cql39O8",
+  apiKey: "AIzaSyDOeWmeaB63ONl-RNrHQrh0sBMgL8zWdFI",
   authDomain: "anon-chat-eri.firebaseapp.com",
   databaseURL: "https://anon-chat-eri-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "anon-chat-eri",
