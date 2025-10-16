@@ -1,32 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Anon Chat Eri</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="terminal">
-      <h1>>_ ANON CHAT ERI</h1>
-      <div id="messages" class="messages"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anon Chat Eri</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="terminal">
+    <h1>>_ ANON CHAT ERI</h1>
 
-      <div class="input-box">
-        <label for="imageUpload" id="imageLabel">🖼️</label>
-        <input type="file" id="imageUpload" accept="image/*" style="display: none;" /> 
+    <div id="messages" class="messages"></div>
 
-        <input
-          type="text"
-          id="msgInput"
-          placeholder="Ketik pesan anonim..."
-          maxlength="1000"
-        />
-        <button id="sendBtn">KIRIM</button>
-      </div>
-
-      <p class="note">[!] Pesan akan terhapus otomatis setelah 3 hari.</p>
+    <div class="input-box">
+      <label for="imageInput" id="imageLabel">📎</label>
+      <input type="file" id="imageInput" accept="image/*" style="display:none">
+      <input type="text" id="msgInput" placeholder="Ketik pesan..." />
+      <button id="sendBtn">KIRIM</button>
     </div>
 
-    <script type="module" src="script.js"></script>
-  </body>
+    <p class="note">Pesan otomatis terhapus setelah 3 hari</p>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
 </html>
