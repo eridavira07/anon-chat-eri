@@ -8,6 +8,12 @@ import {
   remove,
   get
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { 
+  getStorage, 
+  ref as storageRef, 
+  uploadBytes, 
+  getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // === Konfigurasi Firebase kamu ===
 const firebaseConfig = {
@@ -25,10 +31,17 @@ const firebaseConfig = {
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const storage = getStorage(app); 
 const chatRef = ref(db, "chat");
 
 // Buat nama anonim acak
 const name = "Anon-" + Math.floor(Math.random() * 10000);
+
+// Elemen HTML
+const msgInput = document.getElementById("msgInput");
+const sendBtn = document.getElementById("sendBtn");
+const imageUpload = document.getElementById("imageUpload");
+const imageLabel = document.getElementById("imageLabel");
 
 // Escape HTML biar aman
 function escapeHTML(str) {
@@ -40,63 +53,96 @@ function escapeHTML(str) {
     .replaceAll("'", "&#039;");
 }
 
+// Fungsi upload gambar
+async function uploadImageAndSend(file, text) {
+  if (!file) return;
+
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Mengunggah...";
+  imageLabel.style.opacity = '0.5';
+
+  try {
+    const filePath = `chat_images/${name}_${Date.now()}_${file.name}`;
+    const imageRef = storageRef(storage, filePath);
+    const snapshot = await uploadBytes(imageRef, file);
+    const imageUrl = await getDownloadURL(snapshot.ref);
+
+    push(chatRef, { 
+      name, 
+      text: text.slice(0, 1000), 
+      time: Date.now(),
+      imageUrl
+    });
+
+    msgInput.value = "";
+    imageUpload.value = ""; 
+  } catch (error) {
+    console.error("Gagal mengirim gambar:", error);
+    alert("Gagal mengunggah gambar. Cek konsol.");
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = "KIRIM";
+    imageLabel.style.opacity = '1';
+  }
+}
+
 // Kirim pesan
-document.getElementById("sendBtn").addEventListener("click", () => {
-  const msgInput = document.getElementById("msgInput");
+sendBtn.addEventListener("click", () => {
   const text = msgInput.value.trim();
-  if (!text) return;
-
-  const limited = text.slice(0, 1000);
-  push(chatRef, { name, text: limited, time: Date.now() });
-  msgInput.value = "";
+  const imageFile = imageUpload.files[0];
+  if (!text && !imageFile) return;
+  if (imageFile) uploadImageAndSend(imageFile, text);
+  else {
+    push(chatRef, { name, text: text.slice(0, 1000), time: Date.now() });
+    msgInput.value = "";
+  }
 });
+msgInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBtn.click(); });
 
-// Tampilkan pesan realtime dan hapus otomatis jika >3 hari
+// Tampilkan pesan
 onChildAdded(chatRef, (snapshot) => {
   const data = snapshot.val();
   if (!data) return;
-
   const now = Date.now();
   const threeDays = 3 * 24 * 60 * 60 * 1000;
-  const age = now - (data.time || 0);
-
-  if (age > threeDays) {
+  if (now - (data.time || 0) > threeDays) {
     remove(ref(db, "chat/" + snapshot.key));
     return;
   }
-
   const msgBox = document.getElementById("messages");
   const p = document.createElement("div");
   p.className = "msg";
 
   const time = new Date(data.time).toLocaleString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    day: "2-digit",
-    month: "short",
+    hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short",
   });
 
+  let contentHTML = escapeHTML(data.text);
+  if (data.imageUrl) {
+    contentHTML = `
+      <img src="${data.imageUrl}" class="chat-image" onclick="window.open(this.src)" alt="Gambar dari ${data.name}" />
+      <br>${contentHTML}
+    `;
+  }
+
   p.innerHTML = `
-    <span class="name">${escapeHTML(data.name)}</span>: ${escapeHTML(
-    data.text
-  )}<span class="time">${time}</span>
+    <span class="name">${escapeHTML(data.name)}</span>: ${contentHTML}
+    <span class="time">${time}</span>
   `;
 
   msgBox.appendChild(p);
   msgBox.scrollTop = msgBox.scrollHeight;
 });
 
-// Saat halaman dibuka, bersihkan pesan lama (>3 hari)
+// Bersihkan pesan lama (>3 hari)
 (async () => {
   const snapshot = await get(chatRef);
   if (!snapshot.exists()) return;
   const now = Date.now();
   const threeDays = 3 * 24 * 60 * 60 * 1000;
-
   snapshot.forEach((child) => {
     const data = child.val();
-    if (now - (data.time || 0) > threeDays) {
+    if (now - (data.time || 0) > threeDays)
       remove(ref(db, "chat/" + child.key));
-    }
   });
 })();

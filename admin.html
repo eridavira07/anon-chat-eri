@@ -1,90 +1,45 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Anon Chat Eri - Admin Dashboard</title>
-    <link rel="stylesheet" href="style.css" />
-    <style>
-        /* Gaya spesifik admin */
-        .terminal { 
-            max-width: 900px;
-            /* Pastikan terminal tidak memaksakan tinggi yang terlalu besar pada layar kecil */
-            height: auto; 
-            max-height: 95vh;
-        }
-
-        /* PERBAIKAN: Buat daftar pesan bisa di-scroll */
-        .admin-list { 
-            margin-top: 20px; 
-            padding: 0 12px; /* Disesuaikan agar isi tidak menempel ke scrollbar */
-            list-style: none;
-            /* PENGATURAN TINGGI DAN SCROLL */
-            max-height: 70vh; /* Batasi tinggi (misalnya 70% dari tinggi layar) */
-            overflow-y: auto; /* Aktifkan scroll vertikal jika konten melebihi max-height */
-
-            /* Gaya agar terlihat seperti kotak pesan terminal */
-            background: rgba(0, 15, 0, 0.88);
-            border-radius: 8px;
-            border: 1px solid var(--panel-border);
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-            /* Memindahkan custom scrollbar dari .messages ke sini jika perlu */
-        }
-        
-        /* Custom scrollbar untuk admin-list (opsional, jika style.css tidak diterapkan) */
-        .admin-list::-webkit-scrollbar { width: 8px; }
-        .admin-list::-webkit-scrollbar-track { background: transparent; }
-        .admin-list::-webkit-scrollbar-thumb {
-            background: rgba(0,255,102,0.12);
-            border-radius: 6px;
-            box-shadow: inset 0 0 4px rgba(0,0,0,0.6);
-        }
-
-        .admin-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin-bottom: 8px;
-            background: rgba(0, 50, 0, 0.7);
-            border-left: 5px solid var(--accent);
-            border-radius: 4px;
-        }
-        .item-content { flex-grow: 1; margin-right: 15px; }
-        .item-content .name { font-weight: bold; color: var(--neon); }
-        .item-content .time { font-size: 0.8em; color: var(--muted); display: block; }
-        .delete-btn {
-            background: #ff0055; /* Warna merah/bahaya */
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.12s, box-shadow 0.12s;
-        }
-        .delete-btn:hover { 
-            background: #cc0044;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(255,0,85,0.3);
-        }
-        /* Responsif sederhana untuk tombol HAPUS */
-        @media (max-width: 600px) {
-            .admin-item { flex-direction: column; align-items: flex-start; }
-            .delete-btn { margin-top: 10px; width: 100%; }
-            .item-content { margin-right: 0; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anon Chat Eri - Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .terminal { max-width: 900px; max-height: 95vh; }
+    .admin-list { 
+      margin-top: 20px; padding: 0 12px; list-style: none;
+      max-height: 70vh; overflow-y: auto;
+      background: rgba(0,15,0,0.88); border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+    }
+    .admin-list::-webkit-scrollbar { width: 8px; }
+    .admin-list::-webkit-scrollbar-thumb {
+      background: rgba(0,255,102,0.12); border-radius: 6px;
+    }
+    .admin-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px; margin-bottom: 8px; background: rgba(0,50,0,0.7);
+      border-left: 5px solid var(--accent); border-radius: 4px;
+    }
+    .item-content { flex-grow: 1; margin-right: 15px; }
+    .item-content .name { font-weight: bold; color: var(--neon); }
+    .item-content .time { font-size: 0.8em; color: var(--muted); display: block; }
+    .delete-btn {
+      background: #ff0055; color: white; border: none;
+      padding: 8px 12px; border-radius: 4px; cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .delete-btn:hover { background: #cc0044; transform: translateY(-2px); }
+  </style>
 </head>
 <body>
-    <div class="terminal">
-        <h1>>_ ADMIN CONSOLE</h1>
-        <p class="note">Kelola Pesan Anonim (Akses Rahasia)</p>
-
-        <ul id="adminMessageList" class="admin-list">
-            </ul>
-
-    </div>
-
-    <script type="module" src="admin.js"></script>
+  <div class="terminal">
+    <h1>>_ ADMIN CONSOLE</h1>
+    <p class="note">Kelola Pesan Anonim (Akses Rahasia)</p>
+    <ul id="adminMessageList" class="admin-list"></ul>
+  </div>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
