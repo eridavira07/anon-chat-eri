@@ -256,3 +256,17 @@ body {
   100% { transform: translateX(0); opacity: 1; }
 }
 .terminal h1 { animation: glitch 6s linear infinite; }
+
+.admin-list {
+  margin-top: 20px; 
+  padding: 0; 
+  list-style: none;
+  /* TAMBAH INI UNTUK SCROLLING */
+  max-height: 70vh; /* Maksimal 70% dari tinggi viewport */
+  overflow-y: auto; /* Aktifkan scroll vertikal jika konten melebihi max-height */
+  /* Berikan sedikit gaya terminal pada scroll area */
+  background: rgba(0, 15, 0, 0.88);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+}
