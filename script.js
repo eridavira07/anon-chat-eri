@@ -2,15 +2,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCkUOL3hfMg8IZUF-GX4QThe_0Cql39O8",
-  authDomain: "anon-chat-eri.firebaseapp.com",
-  databaseURL: "https://anon-chat-eri-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "anon-chat-eri",
-  storageBucket: "anon-chat-eri.appspot.com",
-  messagingSenderId: "772026352457",
-  appId: "1:772026352457:web:43d01526df75e5e49cea98",
-  measurementId: "G-2YRM1KMDMN"
-};
+    apiKey: "AIzaSyCkUOL3hfMg8I8ZUF-GX4QThe_0Cql39O8",
+    authDomain: "anon-chat-eri.firebaseapp.com",
+    databaseURL: "https://anon-chat-eri-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "anon-chat-eri",
+    storageBucket: "anon-chat-eri.firebasestorage.app",
+    messagingSenderId: "770226352457",
+    appId: "1:770226352457:web:43d01526df75e5e49cea98",
+    measurementId: "G-2YRM1KMDDM"
+  };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
