@@ -22,13 +22,10 @@ const name = "Anon-" + Math.floor(Math.random()*10000);
 const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 const messages = document.getElementById("messages");
+const adminPosts = document.getElementById("adminPosts");
 
 function escapeHTML(str=""){
-  return str.replaceAll("&","&amp;")
-            .replaceAll("<","&lt;")
-            .replaceAll(">","&gt;")
-            .replaceAll('"',"&quot;")
-            .replaceAll("'","&#039;");
+  return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
 sendBtn.addEventListener("click", ()=>{
@@ -42,35 +39,41 @@ msgInput.addEventListener("keypress",(e)=>{
   if(e.key==="Enter") sendBtn.click();
 });
 
-function renderMessage(container, data, isAdminPost=false){
+function renderMessage(container, data, isAdmin=false){
   const msgDiv = document.createElement("div");
   msgDiv.className="msg";
-
   const time = new Date(data.time).toLocaleString("id-ID",{
     hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
   });
-
-  const nameColor = (data.name?.includes("Admin") || isAdminPost) ? "#FFFF00" : "#00ff66";
-  const thumbHtml = data.thumb ? `<img src="${data.thumb}" class="chat-thumb" onclick="window.open('${data.original}')" alt="Admin Post">` : "";
+  const nameColor = isAdmin ? "#FFFF00" : "#00ff66";
 
   msgDiv.innerHTML=`
-    <span class="name" style="color:${nameColor}">${escapeHTML(data.name || "Eri Davira - Admin")}</span>: ${escapeHTML(data.text || data.status || "")}
-    ${thumbHtml}
+    <span class="name" style="color:${nameColor}">${escapeHTML(data.name)}</span>: ${escapeHTML(data.text || data.status || "")}
     <span class="time">${time}</span>
   `;
-
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
 }
 
+// Render chat
 onChildAdded(chatRef,(snapshot)=>{
   const data = snapshot.val();
   if(!data) return;
-  renderMessage(messages, data, false);
+  const isAdmin = data.name?.includes("Admin");
+  renderMessage(messages,data,isAdmin);
 });
 
+// Render admin posts
 onChildAdded(adminPostRef,(snapshot)=>{
   const data = snapshot.val();
   if(!data) return;
-  renderMessage(messages, data, true);
+  const postDiv = document.createElement("div");
+  postDiv.className="admin-post";
+  postDiv.innerHTML=`
+    <div class="post-thumb" onclick="window.open('${data.original}')">
+      <img src="${data.thumb}" alt="Admin Post">
+    </div>
+    <div class="post-text">${escapeHTML(data.status)}</div>
+  `;
+  adminPosts.appendChild(postDiv);
 });

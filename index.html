@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anon Chat Eri</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anon Chat Eri</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="terminal">
-    <h1>>_ ANON CHAT ERI</h1>
+<div class="terminal">
+  <h1>>_ ANON CHAT ERI</h1>
 
+  <div class="messages-container">
     <div id="messages" class="messages"></div>
-
-    <div class="input-box">
-      <input type="text" id="msgInput" placeholder="Ketik pesan..." />
-      <button id="sendBtn">KIRIM</button>
-    </div>
-
-    <p class="note">Pesan otomatis terhapus setelah 3 hari</p>
+    <div id="adminPosts" class="admin-posts"></div>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <div class="input-box">
+    <input type="text" id="msgInput" placeholder="Ketik pesan..." />
+    <button id="sendBtn">KIRIM</button>
+  </div>
+
+  <p class="note">Pesan otomatis terhapus setelah 3 hari</p>
+</div>
+
+<script type="module" src="script.js"></script>
 </body>
 </html>
