@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -47,15 +47,8 @@ msgInput.addEventListener("keypress",(e)=>{
   if(e.key==="Enter") sendBtn.click();
 });
 
-// Tampilkan chat realtime
-onChildAdded(chatRef,(snapshot)=>{
-  const data = snapshot.val();
-  if(!data) return;
-
-  const now = Date.now();
-  const threeDays = 3*24*60*60*1000;
-  if(now-(data.time||0)>threeDays) return;
-
+// Fungsi render pesan
+function renderMessage(container, data, isAdminPost=false) {
   const msgDiv = document.createElement("div");
   msgDiv.className="msg";
 
@@ -63,37 +56,29 @@ onChildAdded(chatRef,(snapshot)=>{
     hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
   });
 
-  const nameColor = data.name.includes("Admin") ? "#FFFF00" : "#00ff66";
+  const nameColor = (data.name?.includes("Admin") || isAdminPost) ? "#FFFF00" : "#00ff66";
   const thumbHtml = data.thumb ? `<img src="${data.thumb}" class="chat-thumb" onclick="window.open('${data.original}')" alt="Admin Post">` : "";
 
   msgDiv.innerHTML=`
-    <span class="name" style="color:${nameColor}">${escapeHTML(data.name)}</span>: ${escapeHTML(data.text)}
+    <span class="name" style="color:${nameColor}">${escapeHTML(data.name || "Eri Davira - Admin")}</span>: ${escapeHTML(data.text || data.status || "")}
     ${thumbHtml}
     <span class="time">${time}</span>
   `;
 
-  messages.appendChild(msgDiv);
-  messages.scrollTop = messages.scrollHeight;
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Tampilkan chat realtime
+onChildAdded(chatRef,(snapshot)=>{
+  const data = snapshot.val();
+  if(!data) return;
+  renderMessage(messages, data, false);
 });
 
 // Tampilkan postingan admin realtime
 onChildAdded(adminPostRef,(snapshot)=>{
   const data = snapshot.val();
   if(!data) return;
-
-  const msgDiv = document.createElement("div");
-  msgDiv.className="msg";
-
-  const time = new Date(data.time).toLocaleString("id-ID",{
-    hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
-  });
-
-  msgDiv.innerHTML=`
-    <span class="name" style="color:#FFFF00">Eri Davira - Admin</span>: ${escapeHTML(data.status)}
-    <img src="${data.thumb}" class="chat-thumb" onclick="window.open('${data.original}')" alt="Admin Post">
-    <span class="time">${time}</span>
-  `;
-
-  messages.appendChild(msgDiv);
-  messages.scrollTop = messages.scrollHeight;
+  renderMessage(messages, data, true);
 });

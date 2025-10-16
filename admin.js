@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// === Konfigurasi Firebase ===
 const firebaseConfig = {
   apiKey: "AIzaSyC6eQQ5KmfNeE-MbbGztfgxUr-Q388QKg4",
   authDomain: "anon-chat-eri.firebaseapp.com",
@@ -13,12 +12,17 @@ const firebaseConfig = {
   measurementId: "G-2YRM1KMDDM"
 };
 
-// === Inisialisasi Firebase ===
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const chatRef = ref(db,"chat");
+const adminPostRef = ref(db,"adminPost");
 
-// === Proteksi akses admin ===
+const list = document.getElementById("adminMessageList");
+const thumbInput = document.getElementById("thumbInput");
+const originalInput = document.getElementById("originalInput");
+const statusInput = document.getElementById("statusInput");
+const postBtn = document.getElementById("postBtn");
+
 const SECRET_KEY = "admin-eri-2025";
 const urlParams = new URLSearchParams(window.location.search);
 if(urlParams.get("key") !== SECRET_KEY){
@@ -26,113 +30,76 @@ if(urlParams.get("key") !== SECRET_KEY){
   throw new Error("Akses ditolak");
 }
 
-// === Identitas admin ===
-const name = "Eri Davira - Admin";
-
-// === Elemen HTML chat ===
-const msgInput = document.getElementById("msgInput");
-const sendBtn = document.getElementById("sendBtn");
-const messages = document.getElementById("messages");
-
-// Fungsi escape HTML
-function escapeHTML(str="") {
-  return str.replaceAll("&","&amp;")
-            .replaceAll("<","&lt;")
-            .replaceAll(">","&gt;")
-            .replaceAll('"',"&quot;")
-            .replaceAll("'","&#039;");
+// Escape HTML
+function escapeHTML(str=""){
+  return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-// === Kirim chat admin ===
-sendBtn.addEventListener("click", ()=>{
-  const text = msgInput.value.trim();
-  if(!text) return;
-  push(chatRef, { name, text: text.slice(0,1000), time: Date.now() });
-  msgInput.value="";
-});
+// Render item
+function renderItem(data,key,type="chat"){
+  const li = document.createElement("li");
+  li.className="admin-item";
 
-msgInput.addEventListener("keypress",(e)=>{
-  if(e.key==="Enter") sendBtn.click();
-});
+  const time = new Date(data.time).toLocaleString("id-ID");
+  const thumbHtml = data.thumb ? `<img src="${data.thumb}" class="thumb-preview" onclick="window.open('${data.original}')">` : "";
+  const textContent = escapeHTML(data.text || data.status || "");
+  const name = type==="post" ? "Eri Davira - Admin" : data.name;
 
-// === Tampilkan chat realtime ===
-onChildAdded(chatRef, (snapshot)=>{
-  const data = snapshot.val();
-  if(!data) return;
-
-  const now = Date.now();
-  const threeDays = 3*24*60*60*1000;
-  if(now-(data.time||0)>threeDays){
-    remove(ref(db,"chat/"+snapshot.key));
-    return;
-  }
-
-  const msgDiv = document.createElement("div");
-  msgDiv.className="msg";
-
-  const time = new Date(data.time).toLocaleString("id-ID",{
-    hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
-  });
-
-  msgDiv.innerHTML=`
-    <span class="name" style="color:#FFFF00">${escapeHTML(data.name)}</span>: ${escapeHTML(data.text)}
-    <span class="time">${time}</span>
+  li.innerHTML = `
+    <div>
+      <b style="color:${type==="post"?"#FFFF00":"#00ff66"}">${escapeHTML(name)}</b>: ${textContent}<br>
+      ${thumbHtml}
+      <div class="time">${time}</div>
+    </div>
+    <button class="delete-btn" data-key="${key}" data-type="${type}">Hapus</button>
   `;
+  list.appendChild(li);
+}
 
-  messages.appendChild(msgDiv);
-  messages.scrollTop = messages.scrollHeight;
-});
+// Ambil data gabungan chat + post admin
+function fetchAll(){
+  list.innerHTML="";
+  const combined = [];
 
-// === Hapus otomatis pesan >3 hari ===
-(async ()=>{
-  const snapshot = await get(chatRef);
-  if(!snapshot.exists()) return;
-  const now = Date.now();
-  const threeDays = 3*24*60*60*1000;
-  snapshot.forEach((child)=>{
-    const data = child.val();
-    if(now-(data.time||0)>threeDays){
-      remove(ref(db,"chat/"+child.key));
+  onValue(chatRef,(snapshot)=>{
+    if(snapshot.exists()){
+      snapshot.forEach(c=> combined.push({data:c.val(), key:c.key, type:"chat"}));
     }
+    onValue(adminPostRef,(snapshot2)=>{
+      if(snapshot2.exists()){
+        snapshot2.forEach(c=> combined.push({data:c.val(), key:c.key, type:"post"}));
+      }
+      combined.sort((a,b)=> (a.data.time||0)-(b.data.time||0));
+      list.innerHTML="";
+      combined.forEach(item=> renderItem(item.data,item.key,item.type));
+      attachDeleteButtons();
+    }, {onlyOnce:true});
+  }, {onlyOnce:true});
+}
+
+// Tombol hapus
+function attachDeleteButtons(){
+  document.querySelectorAll(".delete-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      if(confirm("Yakin hapus item ini?")){
+        const type = btn.dataset.type;
+        const key = btn.dataset.key;
+        if(type==="chat") remove(ref(db,"chat/"+key));
+        else remove(ref(db,"adminPost/"+key));
+      }
+    };
   });
-})();
+}
 
-// === Admin posting ===
-const thumbLinkInput = document.getElementById('thumbLink');
-const originalLinkInput = document.getElementById('originalLink');
-const statusTextInput = document.getElementById('statusText');
-const postBtn = document.getElementById('postBtn');
-const adminPosts = document.getElementById('adminPosts');
+// Tombol posting admin
+postBtn.onclick = ()=>{
+  const thumb = thumbInput.value.trim();
+  const original = originalInput.value.trim();
+  const status = statusInput.value.trim();
+  if(!status) return alert("Teks/status tidak boleh kosong");
+  push(adminPostRef,{thumb, original, status, time: Date.now()});
+  thumbInput.value=""; originalInput.value=""; statusInput.value="";
+};
 
-postBtn.addEventListener('click', ()=>{
-  const thumbLink = thumbLinkInput.value.trim();
-  const originalLink = originalLinkInput.value.trim();
-  const statusText = statusTextInput.value.trim();
-
-  if(!thumbLink || !originalLink || !statusText){
-    alert('Semua kolom harus diisi!');
-    return;
-  }
-
-  const container = document.createElement('div');
-  container.className = 'admin-post-container';
-
-  const img = document.createElement('img');
-  img.src = thumbLink;
-  img.className = 'admin-post';
-  img.title = statusText;
-  img.onclick = ()=> window.open(originalLink);
-
-  const text = document.createElement('div');
-  text.className='status-text';
-  text.textContent=statusText;
-
-  container.appendChild(img);
-  container.appendChild(text);
-  adminPosts.appendChild(container);
-
-  // Reset form
-  thumbLinkInput.value='';
-  originalLinkInput.value='';
-  statusTextInput.value='';
-});
+// Inisialisasi
+fetchAll();
