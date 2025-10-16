@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Firebase config
+// Konfigurasi Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC6eQQ5KmfNeE-MbbGztfgxUr-Q388QKg4",
   authDomain: "anon-chat-eri.firebaseapp.com",
@@ -13,29 +13,24 @@ const firebaseConfig = {
   measurementId: "G-2YRM1KMDDM"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const chatRef = ref(db,"chat");
-const adminPostRef = ref(db,"adminPost");
+const chatRef = ref(db, "chat");
 
-// User name anonim
+// Nama user anonim
 const name = "Anon-" + Math.floor(Math.random()*10000);
 
-// HTML elements
+// Elemen HTML
 const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 const messages = document.getElementById("messages");
 
+// Fungsi escape HTML
 function escapeHTML(str="") {
-  return str.replaceAll("&","&amp;")
-            .replaceAll("<","&lt;")
-            .replaceAll(">","&gt;")
-            .replaceAll('"',"&quot;")
-            .replaceAll("'","&#039;");
+  return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-// Kirim chat user
+// Kirim pesan
 sendBtn.addEventListener("click", ()=>{
   const text = msgInput.value.trim();
   if(!text) return;
@@ -43,18 +38,16 @@ sendBtn.addEventListener("click", ()=>{
   msgInput.value="";
 });
 
-msgInput.addEventListener("keypress",(e)=>{
-  if(e.key==="Enter") sendBtn.click();
-});
+msgInput.addEventListener("keypress",(e)=>{ if(e.key==="Enter") sendBtn.click(); });
 
-// Tampilkan chat realtime
-onChildAdded(chatRef,(snapshot)=>{
+// Tampilkan pesan realtime
+onChildAdded(chatRef, (snapshot)=>{
   const data = snapshot.val();
   if(!data) return;
 
   const now = Date.now();
   const threeDays = 3*24*60*60*1000;
-  if(now-(data.time||0)>threeDays) return;
+  if(now-(data.time||0)>threeDays) { remove(ref(db,"chat/"+snapshot.key)); return; }
 
   const msgDiv = document.createElement("div");
   msgDiv.className="msg";
@@ -63,12 +56,11 @@ onChildAdded(chatRef,(snapshot)=>{
     hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
   });
 
-  const nameColor = data.name.includes("Admin") ? "#FFFF00" : "#00ff66";
-  const thumbHtml = data.thumb ? `<img src="${data.thumb}" class="chat-thumb" onclick="window.open('${data.original}')" alt="Admin Post">` : "";
+  const isAdmin = data.name==="Eri Davira - Admin";
+  const nameColor = isAdmin ? '#FFFF00' : '#00ffaa';
 
   msgDiv.innerHTML=`
     <span class="name" style="color:${nameColor}">${escapeHTML(data.name)}</span>: ${escapeHTML(data.text)}
-    ${thumbHtml}
     <span class="time">${time}</span>
   `;
 
@@ -76,24 +68,16 @@ onChildAdded(chatRef,(snapshot)=>{
   messages.scrollTop = messages.scrollHeight;
 });
 
-// Tampilkan postingan admin realtime
-onChildAdded(adminPostRef,(snapshot)=>{
-  const data = snapshot.val();
-  if(!data) return;
-
-  const msgDiv = document.createElement("div");
-  msgDiv.className="msg";
-
-  const time = new Date(data.time).toLocaleString("id-ID",{
-    hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
+// Hapus otomatis >3 hari
+(async ()=>{
+  const snapshot = await get(chatRef);
+  if(!snapshot.exists()) return;
+  const now = Date.now();
+  const threeDays = 3*24*60*60*1000;
+  snapshot.forEach((child)=>{
+    const data = child.val();
+    if(now-(data.time||0)>threeDays){
+      remove(ref(db,"chat/"+child.key));
+    }
   });
-
-  msgDiv.innerHTML=`
-    <span class="name" style="color:#FFFF00">Eri Davira - Admin</span>: ${escapeHTML(data.status)}
-    <img src="${data.thumb}" class="chat-thumb" onclick="window.open('${data.original}')" alt="Admin Post">
-    <span class="time">${time}</span>
-  `;
-
-  messages.appendChild(msgDiv);
-  messages.scrollTop = messages.scrollHeight;
-});
+})();

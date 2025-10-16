@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// === Konfigurasi Firebase ===
 const firebaseConfig = {
   apiKey: "AIzaSyC6eQQ5KmfNeE-MbbGztfgxUr-Q388QKg4",
   authDomain: "anon-chat-eri.firebaseapp.com",
@@ -12,85 +13,126 @@ const firebaseConfig = {
   measurementId: "G-2YRM1KMDDM"
 };
 
+// === Inisialisasi Firebase ===
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const chatRef = ref(db, "chat");
-const list = document.getElementById("adminMessageList");
+const chatRef = ref(db,"chat");
 
+// === Proteksi akses admin ===
 const SECRET_KEY = "admin-eri-2025";
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("key") !== SECRET_KEY) {
+if(urlParams.get("key") !== SECRET_KEY){
   document.body.innerHTML = "<h1 style='color:red;text-align:center;'>403 FORBIDDEN</h1>";
   throw new Error("Akses ditolak");
 }
 
-// === Fungsi untuk kirim pesan admin ===
-const adminName = "Eri Davira - Admin";
-const inputBox = document.createElement('div');
-inputBox.style.display = 'flex';
-inputBox.style.marginTop = '12px';
-const inputField = document.createElement('input');
-inputField.type = 'text';
-inputField.placeholder = 'Ketik pesan admin...';
-inputField.style.flex = '1';
-inputField.style.padding = '8px';
-inputField.style.borderRadius = '4px';
-inputField.style.border = '1px solid rgba(0,255,102,0.12)';
-const sendBtn = document.createElement('button');
-sendBtn.textContent = 'KIRIM';
-sendBtn.style.marginLeft = '8px';
-sendBtn.style.padding = '8px 12px';
-sendBtn.style.borderRadius = '4px';
-sendBtn.style.cursor = 'pointer';
-sendBtn.style.backgroundColor = '#00ff66';
-sendBtn.style.border = 'none';
-sendBtn.style.color = '#001a00';
-inputBox.appendChild(inputField);
-inputBox.appendChild(sendBtn);
-document.querySelector('.terminal').appendChild(inputBox);
+// === Identitas admin ===
+const name = "Eri Davira - Admin";
 
-sendBtn.onclick = () => {
-  const text = inputField.value.trim();
-  if (!text) return;
-  push(chatRef, { name: adminName, text, time: Date.now() });
-  inputField.value = '';
-};
-inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+// === Elemen HTML chat ===
+const msgInput = document.getElementById("msgInput");
+const sendBtn = document.getElementById("sendBtn");
+const messages = document.getElementById("messages");
 
-onValue(chatRef, (snapshot) => {
-  list.innerHTML = '';
-  if (!snapshot.exists()) {
-    list.innerHTML = "<li class='note' style='text-align:center;'>Tidak ada pesan.</li>";
+// Fungsi escape HTML
+function escapeHTML(str="") {
+  return str.replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+}
+
+// === Kirim chat admin ===
+sendBtn.addEventListener("click", ()=>{
+  const text = msgInput.value.trim();
+  if(!text) return;
+  push(chatRef, { name, text: text.slice(0,1000), time: Date.now() });
+  msgInput.value="";
+});
+
+msgInput.addEventListener("keypress",(e)=>{
+  if(e.key==="Enter") sendBtn.click();
+});
+
+// === Tampilkan chat realtime ===
+onChildAdded(chatRef, (snapshot)=>{
+  const data = snapshot.val();
+  if(!data) return;
+
+  const now = Date.now();
+  const threeDays = 3*24*60*60*1000;
+  if(now-(data.time||0)>threeDays){
+    remove(ref(db,"chat/"+snapshot.key));
     return;
   }
 
-  const messagesArray = [];
-  snapshot.forEach(child => {
-    messagesArray.push({ key: child.key, val: child.val() });
-  });
-  messagesArray.sort((a,b) => b.val.time - a.val.time);
+  const msgDiv = document.createElement("div");
+  msgDiv.className="msg";
 
-  messagesArray.forEach(({key, val}) => {
-    const li = document.createElement('li');
-    li.className = 'admin-item';
-
-    const time = new Date(val.time).toLocaleString('id-ID');
-    const isAdmin = val.name === adminName;
-    const nameColor = isAdmin ? '#FFFF00' : '#00ffaa'; // kuning untuk admin, hijau untuk lainnya
-
-    li.innerHTML = `
-      <div>
-        <b style="color:${nameColor}">${val.name}</b>: ${val.text || '(kosong)'}
-        <div class="time">${time}</div>
-      </div>
-      <button class="delete-btn" data-key="${key}">Hapus</button>
-    `;
-    list.appendChild(li);
+  const time = new Date(data.time).toLocaleString("id-ID",{
+    hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"
   });
 
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.onclick = () => {
-      if(confirm('Yakin hapus pesan ini?')) remove(ref(db, 'chat/' + btn.dataset.key));
-    };
+  msgDiv.innerHTML=`
+    <span class="name" style="color:#FFFF00">${escapeHTML(data.name)}</span>: ${escapeHTML(data.text)}
+    <span class="time">${time}</span>
+  `;
+
+  messages.appendChild(msgDiv);
+  messages.scrollTop = messages.scrollHeight;
+});
+
+// === Hapus otomatis pesan >3 hari ===
+(async ()=>{
+  const snapshot = await get(chatRef);
+  if(!snapshot.exists()) return;
+  const now = Date.now();
+  const threeDays = 3*24*60*60*1000;
+  snapshot.forEach((child)=>{
+    const data = child.val();
+    if(now-(data.time||0)>threeDays){
+      remove(ref(db,"chat/"+child.key));
+    }
   });
+})();
+
+// === Admin posting ===
+const thumbLinkInput = document.getElementById('thumbLink');
+const originalLinkInput = document.getElementById('originalLink');
+const statusTextInput = document.getElementById('statusText');
+const postBtn = document.getElementById('postBtn');
+const adminPosts = document.getElementById('adminPosts');
+
+postBtn.addEventListener('click', ()=>{
+  const thumbLink = thumbLinkInput.value.trim();
+  const originalLink = originalLinkInput.value.trim();
+  const statusText = statusTextInput.value.trim();
+
+  if(!thumbLink || !originalLink || !statusText){
+    alert('Semua kolom harus diisi!');
+    return;
+  }
+
+  const container = document.createElement('div');
+  container.className = 'admin-post-container';
+
+  const img = document.createElement('img');
+  img.src = thumbLink;
+  img.className = 'admin-post';
+  img.title = statusText;
+  img.onclick = ()=> window.open(originalLink);
+
+  const text = document.createElement('div');
+  text.className='status-text';
+  text.textContent=statusText;
+
+  container.appendChild(img);
+  container.appendChild(text);
+  adminPosts.appendChild(container);
+
+  // Reset form
+  thumbLinkInput.value='';
+  originalLinkInput.value='';
+  statusTextInput.value='';
 });
