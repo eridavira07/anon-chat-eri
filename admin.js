@@ -64,21 +64,23 @@ onValue(chatRef, (snapshot) => {
     return;
   }
 
-  // Ambil data ke array lalu urutkan berdasarkan waktu terbaru
   const messagesArray = [];
   snapshot.forEach(child => {
     messagesArray.push({ key: child.key, val: child.val() });
   });
-  messagesArray.sort((a,b) => b.val.time - a.val.time); // terbaru di atas
+  messagesArray.sort((a,b) => b.val.time - a.val.time);
 
   messagesArray.forEach(({key, val}) => {
     const li = document.createElement('li');
     li.className = 'admin-item';
 
     const time = new Date(val.time).toLocaleString('id-ID');
+    const isAdmin = val.name === adminName;
+    const nameColor = isAdmin ? '#FFFF00' : '#00ffaa'; // kuning untuk admin, hijau untuk lainnya
+
     li.innerHTML = `
       <div>
-        <b>${val.name}</b>: ${val.text || '(kosong)'}
+        <b style="color:${nameColor}">${val.name}</b>: ${val.text || '(kosong)'}
         <div class="time">${time}</div>
       </div>
       <button class="delete-btn" data-key="${key}">Hapus</button>
