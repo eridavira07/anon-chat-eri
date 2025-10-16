@@ -1,48 +1,39 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anon Chat Admin</title>
-<link rel="stylesheet" href="style.css">
-<style>
-.admin-container { display:flex; gap:12px; height:90vh; }
-.chat-panel { flex:2; display:flex; flex-direction:column; }
-.post-panel { flex:1; display:flex; flex-direction:column; gap:6px; }
-.admin-form { display:flex; flex-direction:column; gap:6px; background: rgba(0,15,0,0.88); padding:12px; border-radius:8px; border:1px solid var(--panel-border); }
-.admin-list { flex:1; overflow-y:auto; background: rgba(0,15,0,0.88); border:1px solid var(--panel-border); border-radius:8px; padding:12px; }
-.admin-item { display:flex; justify-content:space-between; align-items:flex-start; padding:10px; background: rgba(0,50,0,0.7); border-left:5px solid var(--accent); border-radius:4px; margin-bottom:6px; word-break: break-word; }
-.delete-btn { background: #ff0055; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; margin-left:8px; }
-input[type="text"], textarea { padding:6px; border-radius:4px; border:1px solid var(--panel-border); background:#001202; color:var(--neon); width:100%; }
-button.post-btn { background: var(--neon); border:none; color:#001a00; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; margin-top:4px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anon Chat Eri - Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="terminal admin-container">
-  <div class="chat-panel">
-    <h2>Chat Panel</h2>
-    <ul id="adminMessageList" class="admin-list"></ul>
-    <div class="admin-chat-input input-box">
-      <input type="text" id="adminMsgInput" placeholder="Ketik pesan Admin...">
-      <button id="adminSendBtn">KIRIM</button>
+  <div class="terminal">
+    <h1>>_ ADMIN CONSOLE</h1>
+
+    <div class="admin-container">
+      <!-- Chat Panel -->
+      <div class="chat-panel">
+        <ul id="adminMessageList" class="admin-list"></ul>
+        <div class="admin-form">
+          <input type="text" id="adminMsgInput" placeholder="Ketik pesan Admin..." />
+          <button id="adminSendBtn">KIRIM</button>
+        </div>
+      </div>
+
+      <!-- Post Panel -->
+      <div class="post-panel">
+        <div class="admin-form">
+          <input type="text" id="thumbInput" placeholder="Thumbnail image link" />
+          <input type="text" id="originalInput" placeholder="Original image link" />
+          <textarea id="statusInput" placeholder="Status / teks"></textarea>
+          <button id="postBtn" class="post-btn">POST</button>
+        </div>
+        <ul id="postList" class="admin-posts"></ul>
+      </div>
     </div>
+
   </div>
 
-  <div class="post-panel">
-    <h2>Posting Admin</h2>
-    <div class="admin-form">
-      <label>Link Thumbnail:</label>
-      <input type="text" id="thumbInput" placeholder="Masukkan link thumbnail">
-      <label>Link Original:</label>
-      <input type="text" id="originalInput" placeholder="Masukkan link gambar original">
-      <label>Status / Teks:</label>
-      <textarea id="statusInput" rows="2" placeholder="Tulis status / teks posting"></textarea>
-      <button class="post-btn" id="postBtn">POSTING</button>
-    </div>
-    <ul id="adminPostList" class="admin-list"></ul>
-  </div>
-</div>
-
-<script type="module" src="admin.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
