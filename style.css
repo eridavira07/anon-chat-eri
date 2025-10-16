@@ -17,7 +17,6 @@ body {
   display:flex; justify-content:center;
   background:radial-gradient(circle at top,var(--bg-start),var(--bg-end));
   font-family:'Share Tech Mono', monospace; color:var(--neon);
-  overflow: hidden;
 }
 
 /* Terminal umum */
@@ -26,28 +25,35 @@ body {
   background:var(--panel); border-radius:12px;
   padding:20px; border:2px solid var(--panel-border);
   box-shadow:0 0 30px rgba(0,255,102,0.12), inset 0 0 60px rgba(0,255,102,0.02);
+  display:flex; flex-direction:column;
+  height:90vh;
 }
 
-.terminal h1, .terminal h2 { text-align:center; color: var(--neon); text-shadow:0 0 8px rgba(0,255,102,0.35); }
+/* Header */
+.terminal h1 { text-align:center; color: var(--neon); text-shadow:0 0 8px rgba(0,255,102,0.35); margin-bottom:12px; }
 
 /* Container chat + admin posts */
-.messages-container { display:flex; gap:12px; }
-.messages { flex:2; height:420px; overflow-y:auto; background: rgba(0, 15, 0, 0.88); padding:12px; border-radius:8px; border:1px solid var(--panel-border); }
-.admin-posts { flex:1; height:420px; overflow-y:auto; background: rgba(0, 15, 0, 0.88); padding:12px; border-radius:8px; border:1px solid var(--panel-border); }
+.messages-container {
+  display:flex; gap:12px; flex:1; overflow:hidden;
+}
+.messages { flex:2; overflow-y:auto; background: rgba(0, 15, 0, 0.88); padding:12px; border-radius:8px; border:1px solid var(--panel-border); }
+.admin-posts { flex:1; overflow-y:auto; background: rgba(0, 15, 0, 0.88); padding:12px; border-radius:8px; border:1px solid var(--panel-border); }
 
 /* Chat message */
 .msg {
   padding:10px 12px; margin-bottom:8px;
   background: rgba(0,255,102,0.02);
   border-left:3px solid rgba(0,255,102,0.12);
-  border-radius:6px;
-  word-break: break-word;
+  border-radius:6px; word-break: break-word;
 }
 .msg .name { font-weight:700; }
 .msg .time { float:right; font-size:0.8rem; color: rgba(102,255,204,0.9); }
 
-/* Input box */
-.input-box { display:flex; gap:10px; margin-top:8px; }
+/* Input box tetap di bawah */
+.input-box {
+  display:flex; gap:10px; margin-top:12px;
+  flex-shrink:0;
+}
 #msgInput { flex:1; padding:10px; border-radius:6px; border:1px solid var(--panel-border); background:#001202; color:var(--neon); }
 #sendBtn { background: var(--neon); border:none; color:#001a00; padding:10px 14px; border-radius:6px; font-weight:bold; cursor:pointer; }
 
@@ -73,7 +79,7 @@ body {
 }
 
 /* Admin page layout */
-.admin-container { display:flex; gap:12px; height:90vh; }
+.admin-container { display:flex; gap:12px; height:100%; }
 .chat-panel { flex:2; display:flex; flex-direction:column; }
 .post-panel { flex:1; display:flex; flex-direction:column; gap:6px; }
 
