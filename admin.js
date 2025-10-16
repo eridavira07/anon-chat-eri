@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, push, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC6eQQ5KmfNeE-MbbGztfgxUr-Q388QKg4",
@@ -17,7 +17,8 @@ const db = getDatabase(app);
 const chatRef = ref(db,"chat");
 const adminPostRef = ref(db,"adminPost");
 
-const list = document.getElementById("adminMessageList");
+const chatList = document.getElementById("adminMessageList");
+const postList = document.getElementById("adminPostList");
 const thumbInput = document.getElementById("thumbInput");
 const originalInput = document.getElementById("originalInput");
 const statusInput = document.getElementById("statusInput");
@@ -30,60 +31,48 @@ if(urlParams.get("key") !== SECRET_KEY){
   throw new Error("Akses ditolak");
 }
 
-// Escape HTML
 function escapeHTML(str=""){
   return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-// Render item
-function renderItem(data,key,type="chat"){
+function renderChatItem(data,key){
+  const li = document.createElement("li");
+  li.className="admin-item";
+
+  const time = new Date(data.time).toLocaleString("id-ID");
+  li.innerHTML=`
+    <div>
+      <b style="color:#00ff66">${escapeHTML(data.name)}</b>: ${escapeHTML(data.text)}
+      <div class="time">${time}</div>
+    </div>
+    <button class="delete-btn" data-key="${key}" data-type="chat">Hapus</button>
+  `;
+  chatList.appendChild(li);
+}
+
+function renderPostItem(data,key){
   const li = document.createElement("li");
   li.className="admin-item";
 
   const time = new Date(data.time).toLocaleString("id-ID");
   const thumbHtml = data.thumb ? `<img src="${data.thumb}" class="thumb-preview" onclick="window.open('${data.original}')">` : "";
-  const textContent = escapeHTML(data.text || data.status || "");
-  const name = type==="post" ? "Eri Davira - Admin" : data.name;
-
-  li.innerHTML = `
+  li.innerHTML=`
     <div>
-      <b style="color:${type==="post"?"#FFFF00":"#00ff66"}">${escapeHTML(name)}</b>: ${textContent}<br>
+      <b style="color:#FFFF00">Eri Davira - Admin</b>: ${escapeHTML(data.status)}<br>
       ${thumbHtml}
       <div class="time">${time}</div>
     </div>
-    <button class="delete-btn" data-key="${key}" data-type="${type}">Hapus</button>
+    <button class="delete-btn" data-key="${key}" data-type="post">Hapus</button>
   `;
-  list.appendChild(li);
+  postList.appendChild(li);
 }
 
-// Ambil data gabungan chat + post admin
-function fetchAll(){
-  list.innerHTML="";
-  const combined = [];
-
-  onValue(chatRef,(snapshot)=>{
-    if(snapshot.exists()){
-      snapshot.forEach(c=> combined.push({data:c.val(), key:c.key, type:"chat"}));
-    }
-    onValue(adminPostRef,(snapshot2)=>{
-      if(snapshot2.exists()){
-        snapshot2.forEach(c=> combined.push({data:c.val(), key:c.key, type:"post"}));
-      }
-      combined.sort((a,b)=> (a.data.time||0)-(b.data.time||0));
-      list.innerHTML="";
-      combined.forEach(item=> renderItem(item.data,item.key,item.type));
-      attachDeleteButtons();
-    }, {onlyOnce:true});
-  }, {onlyOnce:true});
-}
-
-// Tombol hapus
 function attachDeleteButtons(){
   document.querySelectorAll(".delete-btn").forEach(btn=>{
-    btn.onclick = ()=>{
+    btn.onclick=()=>{
       if(confirm("Yakin hapus item ini?")){
-        const type = btn.dataset.type;
-        const key = btn.dataset.key;
+        const type=btn.dataset.type;
+        const key=btn.dataset.key;
         if(type==="chat") remove(ref(db,"chat/"+key));
         else remove(ref(db,"adminPost/"+key));
       }
@@ -91,15 +80,24 @@ function attachDeleteButtons(){
   });
 }
 
-// Tombol posting admin
-postBtn.onclick = ()=>{
-  const thumb = thumbInput.value.trim();
-  const original = originalInput.value.trim();
-  const status = statusInput.value.trim();
+// Listener chat realtime
+onChildAdded(chatRef,(snapshot)=>{
+  renderChatItem(snapshot.val(),snapshot.key);
+  attachDeleteButtons();
+});
+
+// Listener admin post realtime
+onChildAdded(adminPostRef,(snapshot)=>{
+  renderPostItem(snapshot.val(),snapshot.key);
+  attachDeleteButtons();
+});
+
+// Posting admin
+postBtn.onclick=()=>{
+  const thumb=thumbInput.value.trim();
+  const original=originalInput.value.trim();
+  const status=statusInput.value.trim();
   if(!status) return alert("Teks/status tidak boleh kosong");
-  push(adminPostRef,{thumb, original, status, time: Date.now()});
+  push(adminPostRef,{thumb, original, status, time:Date.now()});
   thumbInput.value=""; originalInput.value=""; statusInput.value="";
 };
-
-// Inisialisasi
-fetchAll();

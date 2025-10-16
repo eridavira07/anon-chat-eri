@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyC6eQQ5KmfNeE-MbbGztfgxUr-Q388QKg4",
   authDomain: "anon-chat-eri.firebaseapp.com",
@@ -13,21 +12,18 @@ const firebaseConfig = {
   measurementId: "G-2YRM1KMDDM"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const chatRef = ref(db,"chat");
 const adminPostRef = ref(db,"adminPost");
 
-// User name anonim
 const name = "Anon-" + Math.floor(Math.random()*10000);
 
-// HTML elements
 const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 const messages = document.getElementById("messages");
 
-function escapeHTML(str="") {
+function escapeHTML(str=""){
   return str.replaceAll("&","&amp;")
             .replaceAll("<","&lt;")
             .replaceAll(">","&gt;")
@@ -35,7 +31,6 @@ function escapeHTML(str="") {
             .replaceAll("'","&#039;");
 }
 
-// Kirim chat user
 sendBtn.addEventListener("click", ()=>{
   const text = msgInput.value.trim();
   if(!text) return;
@@ -47,8 +42,7 @@ msgInput.addEventListener("keypress",(e)=>{
   if(e.key==="Enter") sendBtn.click();
 });
 
-// Fungsi render pesan
-function renderMessage(container, data, isAdminPost=false) {
+function renderMessage(container, data, isAdminPost=false){
   const msgDiv = document.createElement("div");
   msgDiv.className="msg";
 
@@ -69,14 +63,12 @@ function renderMessage(container, data, isAdminPost=false) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Tampilkan chat realtime
 onChildAdded(chatRef,(snapshot)=>{
   const data = snapshot.val();
   if(!data) return;
   renderMessage(messages, data, false);
 });
 
-// Tampilkan postingan admin realtime
 onChildAdded(adminPostRef,(snapshot)=>{
   const data = snapshot.val();
   if(!data) return;
