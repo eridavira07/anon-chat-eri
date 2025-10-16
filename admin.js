@@ -37,14 +37,10 @@ onValue(chatRef, (snapshot) => {
     li.className = "admin-item";
 
     const time = new Date(data.time).toLocaleString("id-ID");
-    const img = data.imageUrl
-      ? `<img src="${data.imageUrl}" style="max-width:80px;max-height:80px;border-radius:4px;margin-bottom:4px;cursor:pointer" onclick="window.open(this.src)">`
-      : "";
 
     li.innerHTML = `
       <div>
-        ${img}
-        <b>${data.name}</b>: ${data.text || "(gambar)"}
+        <b>${data.name}</b>: ${data.text || "(kosong)"}
         <div class="time">${time}</div>
       </div>
       <button class="delete-btn" data-key="${child.key}">Hapus</button>
