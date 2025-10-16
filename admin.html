@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anon Chat Eri - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* Gaya spesifik admin */
+        .terminal { max-width: 900px; }
+        .admin-list { margin-top: 20px; padding: 0; list-style: none; }
+        .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 50, 0, 0.7);
+            border-left: 5px solid var(--accent);
+            border-radius: 4px;
+        }
+        .item-content { flex-grow: 1; margin-right: 15px; }
+        .item-content .name { font-weight: bold; color: var(--neon); }
+        .item-content .time { font-size: 0.8em; color: var(--muted); display: block; }
+        .delete-btn {
+            background: #ff0055; /* Warna merah/bahaya */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover { background: #cc0044; }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <h1>>_ ADMIN CONSOLE</h1>
+        <p class="note">Kelola Pesan Anonim (Akses Rahasia)</p>
+
+        <ul id="adminMessageList" class="admin-list">
+            </ul>
+
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
