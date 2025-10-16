@@ -44,6 +44,13 @@ const messages = document.getElementById("messages");
 const imageInput = document.getElementById("imageInput");
 const imageLabel = document.getElementById("imageLabel");
 
+// === Elemen untuk preview ===
+const previewContainer = document.createElement("div");
+previewContainer.id = "previewContainer";
+previewContainer.style.margin = "8px 0";
+previewContainer.style.textAlign = "center";
+messages.insertAdjacentElement("afterend", previewContainer);
+
 // === Fungsi Escape HTML ===
 function escapeHTML(str = "") {
   return str
@@ -53,6 +60,29 @@ function escapeHTML(str = "") {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+// === Preview gambar sebelum dikirim ===
+imageInput.addEventListener("change", () => {
+  previewContainer.innerHTML = "";
+  const file = imageInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.createElement("img");
+    img.src = e.target.result;
+    img.alt = "Preview Gambar";
+    img.style.maxWidth = "100%";
+    img.style.maxHeight = "200px";
+    img.style.border = "1px solid rgba(0,255,102,0.2)";
+    img.style.borderRadius = "8px";
+    img.style.marginTop = "6px";
+    img.style.cursor = "pointer";
+    img.onclick = () => window.open(img.src);
+    previewContainer.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+});
 
 // === Upload gambar dan kirim pesan ===
 async function uploadImageAndSend(file, text) {
@@ -78,6 +108,7 @@ async function uploadImageAndSend(file, text) {
 
     msgInput.value = "";
     imageInput.value = "";
+    previewContainer.innerHTML = ""; // hapus preview setelah terkirim
   } catch (err) {
     alert("Gagal mengunggah gambar!");
     console.error(err);
