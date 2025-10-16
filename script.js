@@ -28,6 +28,7 @@ const chatRef = ref(db, "chat");
 
 // === Nama pengguna anonim ===
 const name = "Anon-" + Math.floor(Math.random() * 10000);
+const adminName = "Eri Davira - Admin";
 
 // === Elemen HTML ===
 const msgInput = document.getElementById("msgInput");
@@ -79,15 +80,18 @@ onChildAdded(chatRef, (snapshot) => {
     month: "short",
   });
 
-  const content = escapeHTML(data.text);
+  // Warna nickname: kuning untuk admin, hijau untuk user
+  const isAdmin = data.name === adminName;
+  const nameColor = isAdmin ? '#FFFF00' : '#00ffaa';
 
   msgDiv.innerHTML = `
-    <span class="name">${escapeHTML(data.name)}</span>: ${content}
+    <span class="name" style="color:${nameColor}">${escapeHTML(data.name)}</span>: ${escapeHTML(data.text)}
     <span class="time">${time}</span>
   `;
 
   messages.appendChild(msgDiv);
   messages.scrollTop = messages.scrollHeight;
+
 });
 
 // === Hapus otomatis pesan lama (>3 hari) ===
